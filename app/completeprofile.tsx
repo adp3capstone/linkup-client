@@ -9,7 +9,7 @@ import genders from "@/data/genders.json";
 import interests from "@/data/interests.json";
 import courses from "@/data/courses.json";
 
-// ✅ Import your API functions here
+//  Import your API functions here
 import { deleteAccount } from "@/services/api";
 
 export default function CompleteProfile() {
@@ -42,9 +42,9 @@ export default function CompleteProfile() {
                 body: JSON.stringify(payload),
             });
             if (!res.ok) throw new Error("Failed to update profile");
-            Alert.alert("✅ Success", "Profile updated!");
+            Alert.alert(" Success", "Profile updated!");
         } catch (err: any) {
-            Alert.alert("❌ Error", err.message);
+            Alert.alert(" Error", err.message);
         }
     };
 
@@ -60,9 +60,9 @@ export default function CompleteProfile() {
                     onPress: async () => {
                         try {
                             await deleteAccount(1); // delete user with ID 1
-                            Alert.alert("✅ Account deleted successfully");
+                            Alert.alert(" Account deleted successfully");
                         } catch (err: any) {
-                            Alert.alert("❌ Error", err.message);
+                            Alert.alert(" Error", err.message);
                         }
                     },
                 },
@@ -115,7 +115,7 @@ export default function CompleteProfile() {
 
             <Button title="Submit" onPress={handleSubmit} />
 
-            {/* ✅ New delete button */}
+            {/*  New delete button */}
             <View style={{ marginTop: 20 }}>
                 <Button title="Delete Account" color="red" onPress={handleDeleteAccount} />
             </View>
