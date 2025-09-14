@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet,Image } from "react-native";
+import React, {useEffect, useState} from "react";
+import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { MultiSelect } from "react-native-element-dropdown";
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-
-// Import enums from JSON
 import institutions from "@/data/institutions.json";
 import genders from "@/data/genders.json";
 import interests from "@/data/interests.json";
 import courses from "@/data/courses.json";
+import {useRouter} from "expo-router";
+import Constants from "expo-constants";
 
 export default function CompleteProfile() {
     const [bio, setBio] = useState("");
@@ -17,27 +17,52 @@ export default function CompleteProfile() {
     const [gender, setGender] = useState("");
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [course, setCourse] = useState("");
+    const [password, setPassword] = useState(""); // <-- added password state
+
+    const [userData, setUserData] = useState<any>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const user = await import('@/scripts/db').then(module =>
+                    module.getFromStorage('user')
+                );
+                if (!user) {
+                    router.replace('/login');
+                    return;
+                }
+                setUserData(user);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                router.replace('/login');
+            }
+        };
+        fetchUserData();
+    }, []);
 
     const handleSubmit = async () => {
+        const user = userData.user;
+        const apiUrl = Constants.expoConfig?.extra?.API_URL;
 
         const payload = {
-            userId: 1, // must always be included
-            username: "XA",
-            firstName: "David",
-            lastName: "Python",
-            email: "boogie@gmail.com",
-            age: 22,
-            password: "12345",
-            bio,
-            institution,
-            gender,
+            userId: user.userId,
+            username: user.userName,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            age: user.age,
+            password: password,
+            bio: bio,
+            institution: institution,
+            gender: gender,
             interests: selectedInterests,
-            course,
+            course: course,
         };
 
         try {
-            const res = await fetch("http://localhost:8080/api/users/update", {
-                method: "PUT",
+            const res = await fetch(`${apiUrl}/user/${user.userId}`, {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
@@ -48,7 +73,6 @@ export default function CompleteProfile() {
         }
     };
 
-
     return (
         <View style={styles.container}>
             <Text>Bio</Text>
@@ -57,6 +81,15 @@ export default function CompleteProfile() {
                 value={bio}
                 onChangeText={setBio}
                 placeholder="Tell us about yourself"
+            />
+
+            <Text>Password</Text>
+            <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter new password"
+                secureTextEntry={true} // <-- masks the input
             />
 
             <Text>Institution</Text>

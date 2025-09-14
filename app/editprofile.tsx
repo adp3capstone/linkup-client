@@ -1,19 +1,21 @@
 import { Alert, Pressable, StyleSheet, TextInput, Switch } from 'react-native';
 import { Text, View } from '@/components/Themed';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { signupUser } from '@/scripts/userapi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from "@react-native-picker/picker";
 import { MultiSelect } from "react-native-element-dropdown";
+
 import institutions from "@/data/institutions.json";
 import orientations from "@/data/orientations.json";
 import genders from "@/data/genders.json";
 import interests from "@/data/interests.json";
 import courses from "@/data/courses.json";
 
-export default function SignupScreen() {
-  const [step, setStep] = useState(1); // Track step 1-2
+import { updateUserFields } from '@/scripts/userapi';
+
+export default function EditProfileScreen() {
+  const [step, setStep] = useState(1);
 
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -33,6 +35,35 @@ export default function SignupScreen() {
   const [orientation, setOrientation] = useState('');
 
   const router = useRouter();
+  const [userData, setUserData] = useState<any>(null);
+    const [userId, setUserId] = useState<number | null>(null);
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await import('@/scripts/db').then(module =>
+          module.getFromStorage('user')
+        );
+  
+        if (!user) {
+          router.replace('/login');
+          return;
+        }
+  
+        setUserData(user);
+  
+        const rawData: any = user;
+        const id = rawData.user.userId;
+  
+        setUserId(id);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        router.replace('/login');
+      }
+    };
+  
+    fetchUserData();
+  }, []);
 
   const handleNext = () => {
     if (step < 2) setStep(step + 1);
@@ -42,39 +73,57 @@ export default function SignupScreen() {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSignUp = async () => {
-    try {
-      const user = {
-        username,
-        firstName,
-        lastName,
-        email,
-        password,
-        age: parseInt(age, 10),
-        bio,
-        institution,
-        gender,
-        course,
-        interests: selectedInterests,
-        orientation,
-        smoker,
-        drinker,
-        height: parseFloat(height),
-      };
+  const handleUpdate = async () => {
+  try {
+    const rawFields: { [key: string]: any } = {
+      username,
+      firstName,
+      lastName,
+      email,
+      password,
+      age: age ? parseInt(age, 10) : null,
+      bio,
+      institution,
+      gender,
+      course,
+      interests: selectedInterests && selectedInterests.length > 0 ? selectedInterests : null,
+      orientation,
+      smoker,
+      drinker,
+      height: height ? parseFloat(height) : null,
+    };
 
-      console.log('Signing up user:', user);
+    // Filter out empty, null, NaN, or undefined
+    const fields = Object.fromEntries(
+      Object.entries(rawFields).filter(([_, value]) => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === "string" && value.trim() === "") return false;
+        if (typeof value === "number" && isNaN(value)) return false;
+        return true;
+      })
+    );
 
-      const result = await signupUser(user);
-
-      if (result) {
-        Alert.alert('Account created successfully!');
-        router.replace('/login');
-      }
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      Alert.alert('Signup failed', error.message || 'Unknown error');
+    if (!userId) {
+      Alert.alert("Error", "User ID not found");
+      return;
     }
-  };
+
+    console.log("Updating user id:", userId);
+    console.log("With fields:", fields);
+
+    const result = await updateUserFields(userId, fields);
+
+    if (result) {
+      console.log("Update successful:", result);
+      Alert.alert("Profile updated successfully!");
+      router.back();
+    }
+  } catch (error: any) {
+    console.error("Update error:", error);
+    Alert.alert("Update failed", error.message || "Unknown error");
+  }
+};
+
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
@@ -129,7 +178,7 @@ export default function SignupScreen() {
               onChange={setSelectedInterests}
               selectedStyle={styles.selectedItem}
             />
-            
+
             <Text>Orientation</Text>
             <Picker selectedValue={orientation} onValueChange={setOrientation}>
               {orientations.map((item) => (
@@ -148,9 +197,21 @@ export default function SignupScreen() {
 
         {/* Navigation Buttons */}
         <View style={styles.navButtons}>
-          {step > 1 && <Pressable style={styles.button} onPress={handleBack}><Text style={styles.buttonText}>Back</Text></Pressable>}
-          {step < 2 && <Pressable style={styles.button} onPress={handleNext}><Text style={styles.buttonText}>Next</Text></Pressable>}
-          {step === 2 && <Pressable style={styles.button} onPress={handleSignUp}><Text style={styles.buttonText}>Sign Up</Text></Pressable>}
+          {step > 1 && (
+            <Pressable style={styles.button} onPress={handleBack}>
+              <Text style={styles.buttonText}>Back</Text>
+            </Pressable>
+          )}
+          {step < 2 && (
+            <Pressable style={styles.button} onPress={handleNext}>
+              <Text style={styles.buttonText}>Next</Text>
+            </Pressable>
+          )}
+          {step === 2 && (
+            <Pressable style={styles.button} onPress={handleUpdate}>
+              <Text style={styles.buttonText}>Update Profile</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </SafeAreaView>
