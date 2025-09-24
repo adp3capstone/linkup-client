@@ -1,35 +1,19 @@
-import { StyleSheet, TextInput, FlatList, Pressable } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, TextInput, FlatList, Pressable, View, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { Text } from '@/components/Themed';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { getMessagesForChat, sendMessage, MessageDTO, getMatchById, getUser } from '@/scripts/userapi';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import moment from 'moment';
 
 export default function ChatScreen() {
   const { chatId } = useLocalSearchParams();
   const [messages, setMessages] = useState<MessageDTO[]>([]);
   const [input, setInput] = useState('');
   const [userId, setUserId] = useState<number | null>(null);
-  const [headerName, setHeaderName] = useState<string>('Chat');
-
-  const fetchMatchInfo = async (matchId: number) => {
-    try {
-      const match = await getMatchById(matchId);
-      if (!match) return null;
-      const user = await getUser(match.user2Id);
-
-      return {
-        matchId,
-        firstName: match.user2FirstName,
-        lastName: match.user2LastName,
-        image: user?.imageBase64 || null,
-      };
-    } catch (err) {
-      console.error('Error fetching match data:', err);
-      return null;
-    }
-  };
+  const [chatPartner, setChatPartner] = useState<string>('Chat');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,36 +26,43 @@ export default function ChatScreen() {
     fetchUser();
   }, []);
 
- useEffect(() => {
-  if (!chatId) return;
-
-  const fetchMessages = async () => {
-    try {
-      const data = await getMessagesForChat(Number(chatId));
-      setMessages(data);
-    } catch (err) {
-      console.error('Failed to fetch messages:', err);
-    }
-  };
-
-  fetchMessages();
-
-  const interval = setInterval(fetchMessages, 3000);
-
-  return () => clearInterval(interval); 
-}, [chatId]);
-
-
-  // --- New: fetch header info ---
+  // Fetch chat partner’s name
   useEffect(() => {
-    const loadHeader = async () => {
+    const fetchPartner = async () => {
       if (!chatId) return;
-      const matchInfo = await fetchMatchInfo(Number(chatId));
-      if (matchInfo) {
-        setHeaderName(`${matchInfo.firstName} ${matchInfo.lastName}`);
+      try {
+        const match = await getMatchById(Number(chatId));
+        if (!match) return;
+        const otherUserId = userId === match.user1Id ? match.user2Id : match.user1Id;
+        const otherUser = await getUser(otherUserId);
+        if (otherUser) {
+          setChatPartner(`${otherUser.firstName} ${otherUser.lastName}`);
+        }
+      } catch (err) {
+        console.error('Failed to fetch chat partner:', err);
       }
     };
-    loadHeader();
+    fetchPartner();
+  }, [chatId, userId]);
+
+  useEffect(() => {
+    if (!chatId) return;
+
+    const fetchMessages = async () => {
+      try {
+        setLoading(true);
+        const data = await getMessagesForChat(Number(chatId));
+        setMessages(data);
+      } catch (err) {
+        console.error('Failed to fetch messages:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 10000);
+    return () => clearInterval(interval);
   }, [chatId]);
 
   const handleSendMessage = async () => {
@@ -86,77 +77,109 @@ export default function ChatScreen() {
     }
   };
 
-  const renderMessage = ({ item }: { item: MessageDTO }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.senderId === userId ? styles.myMessage : styles.theirMessage,
-      ]}
-    >
-      <Text style={styles.messageText}>{item.content}</Text>
-    </View>
-  );
+  const renderMessage = ({ item }: { item: MessageDTO }) => {
+    const isMe = item.senderId === userId;
+    const timestamp = moment(item.sentAt).format('HH:mm');
+
+    return (
+      <View style={{ marginVertical: 5 }}>
+        <View
+          style={[
+            styles.messageBubble,
+            isMe ? styles.myMessage : styles.theirMessage,
+          ]}
+        >
+          <Text style={styles.messageText}>{item.content}</Text>
+          <Text style={styles.messageTime}>{timestamp}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#a020f0" />
+        <Text style={{ marginTop: 10 }}>Loading chat...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerText}>{headerName}</Text>
-        </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100}
+      >
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerText}>{chatPartner}</Text>
+          </View>
 
-        {/* Messages */}
-        <FlatList
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={item => item.messageId.toString()}
-          contentContainerStyle={styles.chatContainer}
-        />
-
-        {/* Input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Enter your message..."
+          {/* Messages */}
+          <FlatList
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={item => item.messageId.toString()}
+            contentContainerStyle={styles.chatContainer}
           />
-          <Pressable onPress={handleSendMessage} style={styles.sendButton}>
-            <Ionicons name="send" size={20} color="#fff" />
-          </Pressable>
+
+          {/* Input */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Enter your message..."
+            />
+            <Pressable onPress={handleSendMessage} style={styles.sendButton}>
+              <Ionicons name="send" size={20} color="#fff" />
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  chatContainer: { padding: 10 },
 
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#a020f0',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    alignItems: 'center',
   },
-  headerText: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginLeft: 10 },
-
-  chatContainer: { padding: 10 },
+  headerText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 
   messageBubble: {
     maxWidth: '70%',
-    padding: 10,
+    padding: 15,
     borderRadius: 15,
-    marginVertical: 5,
+    marginVertical: 2,
   },
+  messageTime: {
+    fontSize: 10,
+    color: '#ffffffcc',
+    alignSelf: 'flex-end',
+    marginTop: 4,
+  },
+
   myMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#a020f0',
+    backgroundColor: '#c05cff',
   },
   theirMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e1bee7',
+    backgroundColor: '#ef94ff',
   },
   messageText: { color: '#000' },
 
@@ -179,5 +202,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
     marginLeft: 8,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -93,6 +93,14 @@ useEffect(() => {
     router.push('/editprofile');
   };
 
+  const handlePreviewProfile = () => {
+    router.push('/previewprofile');
+  };
+
+    const handleEditPreferences = () => {
+    router.push('/editpreferences');
+  };
+
 return (
     <ScrollView contentContainerStyle={styles.container}>
       <Pressable onPress={() => router.push("/editimage")}>
@@ -134,12 +142,20 @@ return (
       ) : null}
 
       {/* Buttons */}
+      <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={handlePreviewProfile}>
+        <Text style={styles.buttonText}>Preview Profile</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.button} onPress={handleCompleteProfile}>
         <Text style={styles.buttonText}>Update Profile</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={() => {}}>
+      {/* <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={() => {}}>
         <Text style={styles.buttonText}>Emergency Contacts</Text>
+      </TouchableOpacity> */}
+
+      <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={handleEditPreferences}>
+        <Text style={styles.buttonText}>Edit Preferences</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
