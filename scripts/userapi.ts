@@ -10,6 +10,7 @@ const MESSSAGE_URL = apiUrl + "/messages";
 const PREFERENCE_URL = apiUrl + "/pref";
 const EMERGENCY_URL = apiUrl + '/emergency-contacts';
 
+
 export interface LikeDTO {
   likeId: number;
   likerId: number;
@@ -139,6 +140,58 @@ export async function getAllUsers() {
         throw new Error(error.message);
     }
 }
+// forgot password function
+export async function forgotPassword(email: string) {
+  try {
+    const response = await fetch(`${apiUrl}/user/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ email: email.trim() }).toString(),
+    });
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      throw new Error(text || "Failed to send reset link");
+    }
+
+    return text;
+  } catch (error: any) {
+    console.log("forgotPassword error:", error.message);
+    throw error;
+  }
+}
+
+//reset password
+export async function resetPassword(token: string, newPassword: string) {
+  try {
+    const response = await fetch(`${apiUrl}/user/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ 
+        token: token.trim(), 
+        newPassword: newPassword.trim() 
+      }).toString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to reset password");
+    }
+
+    const result = await response.text();
+    Alert.alert("Success", result);
+    return result;
+  } catch (error: any) {
+    Alert.alert("Error", error.message || "Something went wrong");
+    throw error;
+  }
+}
+/// Fetch image by user ID
 
 export async function getImageByUserId(userId: number) {
     try {

@@ -53,7 +53,7 @@ export default function LoginScreen() {
     };
 
     const handleForgotPassword = () => {
-        Alert.alert('Forgot Password', 'Please contact support for assistance.');
+        router.push('/forgotpassword');
     };
 
     return (

@@ -71,6 +71,7 @@ function RootLayoutNav() {
         <Stack.Screen name="emergencycontacts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="createemergencycontact" options={{ presentation: 'modal' }} />
         <Stack.Screen name="updateemergencycontact" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="updatepassword" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
   );
