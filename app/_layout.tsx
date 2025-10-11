@@ -60,6 +60,7 @@ function RootLayoutNav() {
         <Stack.Screen name="login" options={{ presentation: 'modal' }} />
         <Stack.Screen name="Signup"/>
         <Stack.Screen name="Login"/>
+        <Stack.Screen name="reportissue"  options={{ presentation: 'modal' }}/>
         <Stack.Screen name="completeprofile" options={{ presentation: 'modal' }} />
         <Stack.Screen name="editprofile" options={{ presentation: 'modal' }} />
         <Stack.Screen name="editimage" options={{ presentation: 'modal' }} />
@@ -67,6 +68,9 @@ function RootLayoutNav() {
         <Stack.Screen name="userprofile" options={{ presentation: 'modal' }} />
         <Stack.Screen name="previewprofile" options={{ presentation: 'modal' }} />
         <Stack.Screen name="editpreferences" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="emergencycontacts" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="createemergencycontact" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="updateemergencycontact" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
   );
