@@ -5,7 +5,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
+import { Platform } from 'react-native';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export {
@@ -13,9 +13,19 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 
+const checkPlatform = ()=>{
+  if (Platform.OS === 'web') {
+    return '(admintabs)';
+  } else if (Platform.OS === 'android' || Platform.OS === 'ios') {
+    return '(tabs)';
+  } else {
+    return '(tabs)';
+  }
+}
+
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: Platform.OS === 'web' ? '(admintabs)' : '(tabs)',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -57,6 +67,7 @@ function RootLayoutNav() {
           }}}
           >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="(admintabs)" options={{ headerShown: false }} /> */}
         <Stack.Screen name="login" options={{ presentation: 'modal' }} />
         <Stack.Screen name="Signup"/>
         <Stack.Screen name="Login"/>
@@ -71,7 +82,11 @@ function RootLayoutNav() {
         <Stack.Screen name="emergencycontacts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="createemergencycontact" options={{ presentation: 'modal' }} />
         <Stack.Screen name="updateemergencycontact" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="updatepassword" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="adminsignup" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="adminlogin" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="adminticket"  options={{ presentation: 'modal' }}/>
+        <Stack.Screen name="admineditimage"  options={{ presentation: 'modal' }}/>
+        <Stack.Screen name="admineditprofile"  options={{ presentation: 'modal' }}/>
       </Stack>
     </ThemeProvider>
   );

@@ -2,8 +2,9 @@ import { StyleSheet, ScrollView, Pressable, Image, ActivityIndicator } from 'rea
 import { Text, View } from '@/components/Themed';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { getChatsForUser, getMatchById, getUser } from '@/scripts/userapi';
-import { ChatDTO, Message } from '@/scripts/userapi';
+import { getMatchById, getUser } from '@/scripts/userapi';
+import { Message } from '@/scripts/messages';
+import {getChatsForUser,ChatDTO} from '@/scripts/chats';
 import moment from 'moment';
 
 interface MatchInfo {

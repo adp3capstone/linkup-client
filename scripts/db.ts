@@ -6,7 +6,7 @@ export const saveToStorage = async (key: string, value: any): Promise<void> => {
         await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
         console.error('Error saving to AsyncStorage:', error);
-    }
+    }////
 };
 
 export const getFromStorage = async <T>(key: string): Promise<T | null> => {
