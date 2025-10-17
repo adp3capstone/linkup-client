@@ -61,7 +61,7 @@ export default function TabLayout() {
     name="tickets"
     options={{
       title: "Tickets",
-      tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+      tabBarIcon: ({ color }) => <TabBarIcon name="exclamation" color={color} />,
     }}
   />
 </Tabs>

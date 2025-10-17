@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, TextInput,  Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput,  Text, View,Platform } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { loginAdmin } from '@/scripts/admin';
@@ -28,6 +28,10 @@ export default function AdminLoginScreen() {
                     username: data.username,
                     role: "admin"
                 });
+                
+                if(Platform.OS == 'web'){
+                    sessionStorage.setItem("user", JSON.stringify(data));
+                }
                 sessionStorage.setItem('id', data.userId.toString() );
                 Alert.alert(`Welcome back ${data.firstName} ${data.lastName}!`);
                 router.push('/(admintabs)/profile');

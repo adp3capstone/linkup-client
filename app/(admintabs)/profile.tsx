@@ -22,14 +22,21 @@ export default function ProfileScreen() {
 useEffect(() => {
   const fetchUserData = async () => {
     try {
-      const user = await import('@/scripts/db').then(module =>
-        module.getFromStorage('user')
-      );
+      const user =  sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user') as string) : null;
+        if (!user) {
+          router.replace('/adminlogin');
+          return;
+        }
+
+        setUserData(user);
+
+        const id = sessionStorage.getItem('id') ? Number(sessionStorage.getItem('id')) : null;
+        setUserId(id);
 
       if (!user) {
         alert(user)
         console.log(user)
-        router.replace('/login');
+        router.replace('/adminlogin');
         return;
       }
 
@@ -37,23 +44,11 @@ useEffect(() => {
       console.log("user data:", user);
       
       const rawData: any = user;
-      
-      const id = rawData.userId;
+
 
       setUserId(id);
-
-      if (id) {
-        const imageResponse = await getImageByUserId(id);
-        if (imageResponse?.imageUrl) {
-          setImageUri(imageResponse.imageUrl);
-        }
-        else{
-          setImageUri(null);
-        }
-      }
     } catch (error) {
       console.error('Error fetching user data:', error);
-     // router.replace('/login');
     }
   };
 
@@ -84,38 +79,19 @@ useEffect(() => {
   const handleLogout = async () => {
     try {
       await clearAllStorage();
-      router.replace('/login');
+      sessionStorage.clear();
+      router.replace('/adminlogin');
     } catch (error) {
       console.error('Error logging out:', error);
     }
   };
 
   const handleCompleteProfile = () => {
-    router.push('/editprofile');
+    router.push('/admineditprofile');
   };
-
-  const handleMakeATicket = ()=>{
-    router.push('/reportissue');
-  }
 
 return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Pressable onPress={() => router.push("/editimage")}>
-        {imageUri ? (
-          <Image
-            source={{ uri: `data:image/jpeg;base64,${imageUri}` }}
-            style={styles.profileImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Text style={styles.placeholderText}>
-              {getInitials(user.firstName, user.lastName)}
-            </Text>
-          </View>
-        )}
-      </Pressable>
-
       {/* Name*/}
       <View style={styles.nameRow}>
         <Text style={styles.name}>
@@ -129,10 +105,6 @@ return (
 
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
         <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleMakeATicket}>
-        <Text style={styles.logoutText}>Tickets</Text>
       </TouchableOpacity>
     </ScrollView>
   );

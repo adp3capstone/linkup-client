@@ -9,70 +9,51 @@ export default function AdminAllTickets() {
   const [userData, setUserData] = useState<any>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [tickets, setTickets] = useState<any[]>([]);
-
   const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const user = await getFromStorage('user');
-
         if (!user) {
           router.replace('/adminlogin');
           return;
         }
-
         setUserData(user);
-        const rawData: any = user;
-        const id = rawData.userId;
-
+        const id = user.userId;
         setUserId(id);
 
-        if (id) {
-          const ticketsResponse = await getAllTickets();
-          console.log(ticketsResponse)
-          if (ticketsResponse) {
-            // Filter out resolved or already assigned tickets
-            const filtered = ticketsResponse.filter(
-              (t: any) => !t.assignedTo && t.status !== 'RESOLVED'
-            );
-            setTickets(filtered);
-            console.log('Filtered tickets:', filtered);
-          }
+        const ticketsResponse = await getAllTickets();
+        if (ticketsResponse) {
+          const filtered = ticketsResponse.filter(
+            (t: any) => !t.assignedTo && t.status !== 'RESOLVED' && t.status !== 'IN_PROGRESS'
+          );
+          setTickets(filtered);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-
     fetchUserData();
   }, []);
 
+  const assignTicketToMe = async (ticketId: number, adminId: number) => {
+    try {
+      const updatedTicket = await assignTicketToAdmin({ ticketId, adminId });
+      alert("Ticket successfully assigned to you!");
+      // Refresh tickets
+      const refreshedTickets = await getAllTickets();
+      setTickets(refreshedTickets.filter((t: any) => !t.assignedTo && t.status !== 'RESOLVED' && t.status !== 'IN_PROGRESS'));
+    } catch (error: any) {
+      console.error("Error assigning ticket:", error.response?.data || error.message);
+      alert("Failed to assign ticket. Please try again.");
+    }
+  };
 
-
-const assignTicketToMe = async (ticketId: number, adminId: number) => {
-  try {
-    console.log(`Assigning ticket ${ticketId} to admin ${adminId}...`);
-
-    const updatedTicket = await assignTicketToAdmin({
-      ticketId,
-      adminId,
-    });
-
-    console.log("Ticket assigned successfully:", updatedTicket);
-    alert("Ticket successfully assigned to you!");
-    
-    // Optionally re-fetch tickets to refresh the list
-    // (uncomment if you have a function like getAllTickets)
-    const refreshedTickets = await getAllTickets();
-    setTickets(refreshedTickets);
-
-  } catch (error: any) {
-    console.error("Error assigning ticket:", error.response?.data || error.message);
-    alert("Failed to assign ticket. Please try again.");
-  }
-};
-
+  const getStatusColor = (status: string | null) => {
+    if (status === 'RESOLVED') return '#2ecc71'; // green
+    return '#e67e22'; // orange/pending
+  };
 
   return (
     <View style={styles.container}>
@@ -83,9 +64,13 @@ const assignTicketToMe = async (ticketId: number, adminId: number) => {
         keyExtractor={(item) => item.ticketId.toString()}
         renderItem={({ item }) => (
           <View style={styles.ticketCard}>
-            <Text style={styles.ticketTitle}>Ticket #{item.ticketId}</Text>
-            <Text>Description: {item.description}</Text>
-            <Text>Status: {item.status}</Text>
+            <View style={styles.ticketHeader}>
+              <Text style={styles.ticketTitle}>Ticket #{item.ticketId}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                <Text style={styles.statusText}>{item.status ?? "Pending"}</Text>
+              </View>
+            </View>
+            <Text style={styles.ticketDesc}>{item.description}</Text>
 
             <Pressable
               style={styles.button}
@@ -104,43 +89,65 @@ const assignTicketToMe = async (ticketId: number, adminId: number) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f9f9f9',
+    padding: 15,
+    backgroundColor: '#f2f2f2',
   },
   heading: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 20,
     textAlign: 'center',
   },
   ticketCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+    borderRadius: 12,
     padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  ticketHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   ticketTitle: {
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  ticketDesc: {
+    fontSize: 14,
+    marginBottom: 12,
+    color: '#555',
+  },
+  statusBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  statusText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 12,
   },
   button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 8,
+    backgroundColor: '#9b59b6',
+    paddingVertical: 10,
     borderRadius: 8,
-    marginTop: 10,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: '#fff',
     fontWeight: '600',
   },
   empty: {
     textAlign: 'center',
-    color: 'gray',
-    marginTop: 20,
+    color: '#888',
+    marginTop: 30,
+    fontSize: 16,
   },
 });

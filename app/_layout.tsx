@@ -5,7 +5,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
+import { Platform } from 'react-native';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export {
@@ -15,7 +15,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: Platform.OS === 'web' ? '(admintabs)' : '(tabs)',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -75,6 +75,8 @@ function RootLayoutNav() {
         <Stack.Screen name="adminsignup" options={{ presentation: 'modal' }} />
         <Stack.Screen name="adminlogin" options={{ presentation: 'modal' }} />
         <Stack.Screen name="adminticket"  options={{ presentation: 'modal' }}/>
+        <Stack.Screen name="admineditimage"  options={{ presentation: 'modal' }}/>
+        <Stack.Screen name="admineditprofile"  options={{ presentation: 'modal' }}/>
       </Stack>
     </ThemeProvider>
   );
