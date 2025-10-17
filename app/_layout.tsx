@@ -57,6 +57,7 @@ function RootLayoutNav() {
           }}}
           >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="(admintabs)" options={{ headerShown: false }} /> */}
         <Stack.Screen name="login" options={{ presentation: 'modal' }} />
         <Stack.Screen name="Signup"/>
         <Stack.Screen name="Login"/>
@@ -71,6 +72,10 @@ function RootLayoutNav() {
         <Stack.Screen name="emergencycontacts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="createemergencycontact" options={{ presentation: 'modal' }} />
         <Stack.Screen name="updateemergencycontact" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="adminsignup" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="adminlogin" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="adminalltickets" options={{ presentation: 'modal' }} />
+        
       </Stack>
     </ThemeProvider>
   );

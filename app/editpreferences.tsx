@@ -1,5 +1,4 @@
-import { Alert, Pressable, StyleSheet, TextInput, Switch, ScrollView } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { Alert, Pressable, StyleSheet, TextInput, Switch, ScrollView,Text, View } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';

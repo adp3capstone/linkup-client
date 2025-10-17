@@ -20,6 +20,7 @@ export interface TicketDTO {
   updatedAt: string;
   resolvedAt?: string | null;
   resolvedBy?: number | null;
+  assignedTo?: number | null;
 }
 
 // Axios instance
@@ -62,3 +63,4 @@ export async function patchTicket(id: number, partialTicket: Partial<TicketDTO>)
 export async function deleteTicket(id: number): Promise<void> {
   await api.delete(`/tickets/${id}`);
 }
+

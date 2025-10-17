@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "adatingapp-client",
-    "slug": "adatingapp-client",
+    "name": "linkup-client",
+    "slug": "linkup-client",
     "version": "1.0.0",
     "extra": {
       "API_URL": "http://192.168.18.75:9999"
