@@ -11,7 +11,7 @@ import orientations from "@/data/orientations.json";
 import genders from "@/data/genders.json";
 import relationshiptypes from "@/data/relationshiptypes.json";
 
-import { createPreference, updatePreference, PreferenceDTO,getPreferenceByUserId } from '@/scripts/userapi';
+import { createPreference, updatePreference, PreferenceDTO,getPreferenceByUserId } from '@/scripts/preferences';
 
 export default function EditPreferenceScreen() {
   const router = useRouter();
