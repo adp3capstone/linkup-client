@@ -1,80 +1,49 @@
-import { StyleSheet, Image, ScrollView, Button, Pressable, View as RNView,TouchableOpacity,  Text, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Text, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { clearAllStorage } from '@/scripts/db';
-import { getImageByUserId } from '@/scripts/userapi';
-import institutions from "@/data/institutions.json";
-
-interface UserImage {
-  userId: number;
-  imageId: number;
-  imageUrl: string; // Base64 string
-}
-
+import { Ionicons } from '@expo/vector-icons'; // ✅ for icons
 
 export default function ProfileScreen() {
   const [userData, setUserData] = useState<any>(null);
-  const [imageUri, setImageUri] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
-
   const router = useRouter();
 
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const user =  sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user') as string) : null;
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = sessionStorage.getItem('user')
+          ? JSON.parse(sessionStorage.getItem('user') as string)
+          : null;
+
         if (!user) {
           router.replace('/adminlogin');
           return;
         }
 
         setUserData(user);
-
-        const id = sessionStorage.getItem('id') ? Number(sessionStorage.getItem('id')) : null;
+        const id = sessionStorage.getItem('id')
+          ? Number(sessionStorage.getItem('id'))
+          : null;
         setUserId(id);
-
-      if (!user) {
-        alert(user)
-        console.log(user)
-        router.replace('/adminlogin');
-        return;
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       }
+    };
 
-      setUserData(user);
-      console.log("user data:", user);
-      
-      const rawData: any = user;
-
-
-      setUserId(id);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
-  };
-
-  fetchUserData();
-}, []);
-
-
-  useEffect(() => {
-    console.log("user id:", userId);
-  },[userId]);
+    fetchUserData();
+  }, []);
 
   if (!userData) {
     return (
-        <View style={styles.container}>
-          <Text>Loading profile...</Text>
-        </View>
+      <View style={styles.container}>
+        <Text>Loading profile...</Text>
+      </View>
     );
   }
 
   const user = userData;
-
-  const getInitials = (firstName: string, lastName: string) => {
-    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return firstInitial + lastInitial;
-  };
+  const resolvedCount = user.resolvedTickets ? user.resolvedTickets.length : 0;
 
   const handleLogout = async () => {
     try {
@@ -90,22 +59,51 @@ useEffect(() => {
     router.push('/admineditprofile');
   };
 
-return (
+  return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Name*/}
-      <View style={styles.nameRow}>
+      {/* Profile Card */}
+      <View style={styles.profileCard}>
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarText}>
+              {user.firstName.charAt(0).toUpperCase()}
+              {user.lastName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        </View>
+
         <Text style={styles.name}>
           {user.firstName} {user.lastName}
         </Text>
+
+        <Text style={styles.roleText}>Administrator</Text>
+
+        <View style={styles.infoSection}>
+          <View style={styles.infoRow}>
+            <Ionicons name="mail-outline" size={20} color="#9b59b6" />
+            <Text style={styles.infoText}>{user.email}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Ionicons name="checkmark-done-circle-outline" size={20} color="#27ae60" />
+            <Text style={styles.infoText}>
+              {resolvedCount} Resolved {resolvedCount === 1 ? 'Ticket' : 'Tickets'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleCompleteProfile}>
+            <Ionicons name="create-outline" size={18} color="#fff" />
+            <Text style={styles.primaryButtonText}>Edit Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={18} color="#e74c3c" />
+            <Text style={styles.secondaryButtonText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleCompleteProfile}>
-        <Text style={styles.buttonText}>Update Profile</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -113,90 +111,98 @@ return (
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    padding: 20,
+    backgroundColor: '#f9f7fb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
   },
-  profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 80,
+  profileCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 25,
+    width: '85%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  avatarContainer: {
     marginBottom: 15,
   },
-  placeholderImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#f3e5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 15,
+  avatarPlaceholder: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#e7c6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  placeholderText: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#9b59b6",
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
+  avatarText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#9b59b6',
   },
   name: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginRight: 8,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#2c2c2c',
   },
-  age: {
-    fontSize: 18,
-    fontWeight: "600",
+  roleText: {
+    fontSize: 15,
+    color: '#9b59b6',
+    marginBottom: 10,
+  },
+  infoSection: {
+    marginTop: 15,
+    width: '100%',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
   },
   infoText: {
     fontSize: 15,
-    color: "#333",
-    marginBottom: 2,
+    color: '#555',
+    marginLeft: 10,
   },
-  institution: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 8,
+  buttonGroup: {
+    marginTop: 25,
+    width: '100%',
+    alignItems: 'center',
   },
-  bio: {
-    fontSize: 14,
-    fontStyle: "italic",
-    color: "#444",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: "#c85bdf",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+  primaryButton: {
+    backgroundColor: '#c85bdf',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '85%',
     borderRadius: 25,
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 6,
-    width: "70%",
+    paddingVertical: 12,
+    marginBottom: 10,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 6,
   },
   secondaryButton: {
-    backgroundColor: "#d891ef",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '85%',
+    borderRadius: 25,
+    borderWidth: 1.5,
+    borderColor: '#e74c3c',
+    paddingVertical: 12,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  logoutButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e74c3c",
-  },
-  logoutText: {
-    color: "#e74c3c",
-    fontSize: 15,
-    fontWeight: "600",
+  secondaryButtonText: {
+    color: '#e74c3c',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 6,
   },
 });
-
