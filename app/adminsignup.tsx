@@ -44,11 +44,11 @@ export default function AdminSignupScreen() {
 
       console.log('Admin created:', createdAdmin);
 
-      Alert.alert('Admin account created successfully!');
+      alert('Admin account created successfully!');
       router.replace('/adminlogin');
     } catch (error: any) {
       console.error('Admin signup error:', error);
-      Alert.alert('Signup failed', error.message || 'Unknown error');
+      alert('Signup failed' + error.message || 'Unknown error');
     }
   };
 

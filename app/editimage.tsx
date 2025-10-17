@@ -90,7 +90,7 @@ export default function EditImageScreen() {
 
             const data = await res.json();
             Alert.alert("Success", "Image uploaded successfully!");
-            router.push('/profile');
+            router.push('/(tabs)/profile');
         } catch (error) {
             console.error("Upload error:", error);
             Alert.alert("Error", "Failed to upload image");
