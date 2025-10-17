@@ -28,7 +28,7 @@ export default function AdminLoginScreen() {
                     username: data.username,
                     role: "admin"
                 });
-                
+                sessionStorage.setItem('id', data.userId.toString() );
                 Alert.alert(`Welcome back ${data.firstName} ${data.lastName}!`);
                 router.push('/(admintabs)/profile');
             } else {

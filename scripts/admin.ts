@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import axios from "axios";
+import {TicketDTO } from '@/scripts/ticket';
 
 const apiUrl = Constants.expoConfig?.extra?.API_URL;
 const ADMIN_URL = `${apiUrl}/admin`;
@@ -93,3 +94,13 @@ export const assignTicketToAdmin = async (request: AdminAssignTicketRequest) => 
     throw error;
   }
 };
+
+export async function resolveTicket(request: AdminAssignTicketRequest): Promise<TicketDTO> {
+  try {
+    const res = await api.patch<TicketDTO>('/tickets/resolve', request);
+    return res.data;
+  } catch (error: any) {
+    console.error('Error resolving ticket:', error);
+    throw error;
+  }
+}

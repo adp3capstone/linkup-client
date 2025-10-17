@@ -34,8 +34,10 @@ useEffect(() => {
       }
 
       setUserData(user);
-
+      console.log("user data:", user);
+      
       const rawData: any = user;
+      
       const id = rawData.userId;
 
       setUserId(id);

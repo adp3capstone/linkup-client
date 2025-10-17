@@ -1,159 +1,120 @@
-import { StyleSheet, Dimensions, Image, TouchableOpacity,  Text, View } from 'react-native';
-import { useEffect, useState, useRef } from "react";
-import { getAllUsers } from '@/scripts/userapi';
-import Swiper from 'react-native-deck-swiper';
-import { Ionicons } from "@expo/vector-icons";
-import { router } from 'expo-router';
-
-type User = {
-  userId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-  age: number;
-  bio: string;
-  institution: string;
-  gender: string;
-  course: string;
-  interests: string[];
-  imageBase64: string | null;
-  preferenceId: number | null;
-  preferredInterests: string[] | null;
-  relationshipType: string | null;
-  minAge: number;
-  maxAge: number;
-  preferredGender: string | null;
-  preferredCourses: string[] | null;
-  maxDistance: number;
-  smokingPreference: boolean;
-  drinkingPreference: boolean;
-  likedUserIds: number[];
-  likedByUserIds: number[];
-};
+import { StyleSheet, Dimensions, Text, View, FlatList, Pressable } from 'react-native';
+import { useEffect, useState } from "react";
+import { getTicketsByAdminId, TicketDTO } from '@/scripts/ticket';
+import { getFromStorage } from '@/scripts/db';
+import { useRouter } from 'expo-router';
 
 export default function TabOneScreen() {
   const [userData, setUserData] = useState<any>(null);
   const [userId, setUserId] = useState<number | null>(null);
+  const [assignedTickets, setAssignedTickets] = useState<TicketDTO[]>([]);
+  const router = useRouter();
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getFromStorage('user');
+        if (!user) return;
 
+        setUserData(user);
 
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const user = await import('@/scripts/db').then(module =>
-        module.getFromStorage('user')
-      );
+        const rawData: any = user;
+        const id = rawData.userId;
 
-      if (!user) return;
+        setUserId(id);
 
-      setUserData(user);
-      const rawData: any = user;
-      const id = rawData.user.userId;
-      setUserId(id);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
+        if (id) {
+          fetchMyTickets(id);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    const fetchMyTickets = async (adminId: number) => {
+      try {
+        const tickets = await getTicketsByAdminId(adminId);
+        setAssignedTickets(tickets);
+      } catch (error) {
+        alert("Failed to fetch tickets. Please try again.");
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const goToTicket = (ticketId: number) => {
+    console.log("Go to ticket:", ticketId);
+    router.push({
+    pathname: "/adminticket",
+    params: { ticketId: ticketId.toString() }, // must be string
+  });
   };
 
-  fetchUserData();
-}, []);
+  const renderTicket = ({ item }: { item: TicketDTO }) => (
+    <View style={styles.ticketCard}>
+      <Text style={styles.ticketText}>Ticket ID: {item.ticketId}</Text>
+      <Text style={styles.ticketText}>Description: {item.description}</Text>
+      <Text style={styles.ticketText}>Status: {item.status}</Text>
+
+      <Pressable style={styles.goButton} onPress={() => goToTicket(item.ticketId)}>
+        <Text style={styles.goButtonText}>Go To</Text>
+      </Pressable>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <View>DashBoard</View>
+      <Text style={styles.heading}>Assigned Tickets</Text>
+      <FlatList
+        data={assignedTickets}
+        keyExtractor={(item) => item.ticketId.toString()}
+        renderItem={renderTicket}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </View>
   );
 }
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "#fff",
-  },
-  cardContainer: {
-    width: "90%",
-    alignItems: "center",
-  },
-  card: {
-    width: "100%",
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-    alignItems: "center",
-    paddingVertical: 15,
-  },
-  expandedCard: {
-    width: "100%",
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-    alignItems: "center",
-    paddingVertical: 15,
+    paddingTop: 20,
     paddingHorizontal: 10,
   },
-  image: {
-    width: "85%",
-    height: 250,
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  ticketCard: {
+    backgroundColor: "#f8f8f8",
+    padding: 15,
     borderRadius: 12,
-    resizeMode: "cover",
     marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  placeholder: {
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginVertical: 5,
-    textAlign: "center",
-  },
-  bioText: {
-    fontSize: 12,
-    color: "#666",
-    marginVertical: 5,
-    textAlign: "center",
-  },
-  cardButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "center",
-    width: "100%",
-    marginTop: 15,
+  ticketText: {
+    fontSize: 16,
     marginBottom: 5,
   },
-  dislikeBtn: {
-    backgroundColor: "#e74c3c",
-    borderRadius: 50,
-    padding: 15,
-    marginHorizontal: 20,
-    elevation: 4,
-  },
-  likeBtn: {
+  goButton: {
+    marginTop: 10,
     backgroundColor: "#9b59b6",
-    borderRadius: 50,
-    padding: 15,
-    marginHorizontal: 20,
-    elevation: 4,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
   },
-  arrowBtn: {
-    marginVertical: 10,
-    width: 30,
-    height: 30,
+  goButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
