@@ -20,6 +20,7 @@ export interface TicketDTO {
   updatedAt: string;
   resolvedAt?: string | null;
   resolvedBy?: number | null;
+  assignedTo?: number | null;
 }
 
 // Axios instance
@@ -62,3 +63,17 @@ export async function patchTicket(id: number, partialTicket: Partial<TicketDTO>)
 export async function deleteTicket(id: number): Promise<void> {
   await api.delete(`/tickets/${id}`);
 }
+
+export const getTicketsByAdminId = async (adminId: number): Promise<TicketDTO[]> => {
+  try {
+    const response = await axios.get<TicketDTO[]>(`${TICKET_URL}/admin/${adminId}`, {
+      headers: { "Content-Type": "application/json" },
+      timeout: 10000, // optional timeout
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching tickets for admin:", error.response?.data || error.message);
+    throw error;
+  }
+};
