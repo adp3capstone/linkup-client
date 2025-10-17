@@ -13,6 +13,16 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 
+const checkPlatform = ()=>{
+  if (Platform.OS === 'web') {
+    return '(admintabs)';
+  } else if (Platform.OS === 'android' || Platform.OS === 'ios') {
+    return '(tabs)';
+  } else {
+    return '(tabs)';
+  }
+}
+
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: Platform.OS === 'web' ? '(admintabs)' : '(tabs)',
