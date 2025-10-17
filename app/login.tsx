@@ -38,7 +38,7 @@ export default function LoginScreen() {
                 });
                 
                 Alert.alert(`Welcome back ${data.user.firstName} ${data.user.lastName}!`);
-                router.push('/profile');
+                router.push('/(tabs)/profile');
             } else {
                 Alert.alert('Login failed', 'Invalid credentials or missing user data');
             }

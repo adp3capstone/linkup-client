@@ -161,7 +161,7 @@ useEffect(() => {
                     </View>
                   )}
                   <Text style={styles.text}>
-                    {currentUser.firstName} {currentUser.lastName}         {currentUser.age}
+                    {currentUser.username}         {currentUser.age}
                   </Text>
                   <View
                     style={{flexDirection: "row", alignItems: "center", marginVertical: 5}}
