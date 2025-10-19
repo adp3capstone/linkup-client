@@ -1,5 +1,4 @@
-import { Alert, Pressable, StyleSheet, TextInput, Switch, ScrollView } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import { Alert, Pressable, StyleSheet, TextInput, Switch, ScrollView,Text, View } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +11,7 @@ import orientations from "@/data/orientations.json";
 import genders from "@/data/genders.json";
 import relationshiptypes from "@/data/relationshiptypes.json";
 
-import { createPreference, updatePreference, PreferenceDTO,getPreferenceByUserId } from '@/scripts/userapi';
+import { createPreference, updatePreference, PreferenceDTO,getPreferenceByUserId } from '@/scripts/preferences';
 
 export default function EditPreferenceScreen() {
   const router = useRouter();

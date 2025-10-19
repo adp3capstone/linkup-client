@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, TextInput, Switch,  Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput, Switch,  Text, View, Platform } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { signupUser } from '@/scripts/userapi';
@@ -108,6 +108,9 @@ const handleSignUp = async () => {
   }
 };
 
+    const handleGoToAdminSignup = () => {
+        router.push('/adminsignup');
+    };
 
 
   return (
@@ -186,6 +189,14 @@ const handleSignUp = async () => {
           {step < 2 && <Pressable style={styles.button} onPress={handleNext}><Text style={styles.buttonText}>Next</Text></Pressable>}
           {step === 2 && <Pressable style={styles.button} onPress={handleSignUp}><Text style={styles.buttonText}>Sign Up</Text></Pressable>}
         </View>
+
+        {
+          Platform.OS === 'web' ? (
+                            <Pressable style={styles.button} onPress={handleGoToAdminSignup}>
+                                <Text style={styles.buttonText}>Admin Sign Up</Text>
+                            </Pressable>
+                        ): null
+        }
       </View>
     </SafeAreaView>
   );
