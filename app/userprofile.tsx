@@ -1,8 +1,9 @@
-import { StyleSheet, Image, ScrollView, View } from 'react-native';
+import { StyleSheet, Image, ScrollView, View, Pressable, Alert } from 'react-native';
 import { Text } from '@/components/Themed';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { getImageByUserId, getUser } from '@/scripts/userapi';
+import { getImageByUserId, getUser, deleteUser } from '@/scripts/userapi';
+import { clearAllStorage } from '@/scripts/db';
 import institutions from "@/data/institutions.json";
 import orientations from "@/data/orientations.json";
 import genders from "@/data/genders.json";
@@ -119,8 +120,38 @@ export default function UserProfileScreen() {
       <Text style={styles.infoText}>
         {user.interests && user.interests.length > 0 ? user.interests.join(', ') : 'None'}
       </Text>
+
+      {/* Delete Account Button */}
+      <Pressable style={styles.deleteButton} onPress={handleDeleteAccount}>
+        <Text style={styles.deleteButtonText}>Delete Account</Text>
+      </Pressable>
     </ScrollView>
   );
+
+  async function handleDeleteAccount() {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteUser(userId);
+              await clearAllStorage();
+              Alert.alert('Account Deleted', 'Your account has been deleted successfully.');
+              router.replace('/login');
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              Alert.alert('Error', 'Failed to delete account. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -180,5 +211,18 @@ const styles = StyleSheet.create({
     color: "#444",
     marginBottom: 10,
     textAlign: "center",
+  },
+  deleteButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

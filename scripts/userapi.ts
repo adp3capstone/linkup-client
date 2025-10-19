@@ -648,3 +648,19 @@ export async function deleteContact(id: number): Promise<void> {
 
   if (!response.ok) throw new Error("Failed to delete contact");
 }
+
+export async function deleteUser(userId: number): Promise<void> {
+  try {
+    const response = await fetch(`${apiUrl}/user/${userId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete user');
+    }
+  } catch (error: any) {
+    Alert.alert(error.message);
+    throw new Error(error.message);
+  }
+}
