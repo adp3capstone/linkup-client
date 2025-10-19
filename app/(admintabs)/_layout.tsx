@@ -43,7 +43,7 @@ export default function TabLayout() {
   }}
 >
   <Tabs.Screen
-    name="index"
+    name="adminindex"
     options={{
       title: "Dashboard",
       tabBarIcon: ({ color }) => <TabBarIcon name="rss" color={color} />,
@@ -51,14 +51,14 @@ export default function TabLayout() {
   />
 
   <Tabs.Screen
-    name="profile"
+    name="adminprofile"
     options={{
       title: "Profile",
       tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
     }}
   />
   <Tabs.Screen
-    name="tickets"
+    name="admintickets"
     options={{
       title: "Tickets",
       tabBarIcon: ({ color }) => <TabBarIcon name="exclamation" color={color} />,

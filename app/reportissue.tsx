@@ -13,6 +13,7 @@ import { getTicketsByUserId, createTicket, TicketDTO, TicketRequest } from "@/sc
 import { getFromStorage } from "@/scripts/db";
 import issuetypes from "@/data/issuetypes.json";
 import { Picker } from "@react-native-picker/picker";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyTicketsScreen() {
   const [userData, setUserData] = useState<any>(null);
@@ -77,6 +78,7 @@ export default function MyTicketsScreen() {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
     <View style={styles.container}>
       <Text style={styles.header}>My Tickets</Text>
 
@@ -146,6 +148,7 @@ export default function MyTicketsScreen() {
         </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 }
 

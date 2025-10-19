@@ -17,7 +17,7 @@ export default function AdminLoginScreen() {
                 username: userName,
                 password: password,
             });
-
+            console.log("Admin login data:", data);
             if (data && data.userId) {
                 await saveToStorage('user', {
                     //token: data.token,userid: data.userId,
@@ -31,10 +31,11 @@ export default function AdminLoginScreen() {
                 
                 if(Platform.OS == 'web'){
                     sessionStorage.setItem("user", JSON.stringify(data));
+                    sessionStorage.setItem('id', data.userId.toString() );
+                    sessionStorage.setItem('token', data.token);
                 }
-                sessionStorage.setItem('id', data.userId.toString() );
-                Alert.alert(`Welcome back ${data.firstName} ${data.lastName}!`);
-                router.push('/(admintabs)/profile');
+                alert(`Welcome back ${data.firstName} ${data.lastName}!`);
+                router.push('/(admintabs)/adminprofile');
             } else {
                 Alert.alert('Login failed', 'Invalid credentials or missing user data');
             }
