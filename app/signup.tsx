@@ -67,8 +67,8 @@ const handleSignUp = async () => {
 
   // If anything is missing, alert the user
   if (missingFields.length > 0) {
-    Alert.alert(
-      "Validation Error",
+    alert(
+      "Validation Error" +
       `Please fill in the following fields:\n- ${missingFields.join("\n- ")}`
     );
     return;
@@ -99,12 +99,12 @@ const handleSignUp = async () => {
     const result = await signupUser(user);
 
     if (result) {
-      Alert.alert('Account created successfully!');
+      alert('Account created successfully!');
       router.replace('/login');
     }
   } catch (error: any) {
     console.error('Signup error:', error);
-    Alert.alert('Signup failed', error.message || 'Unknown error');
+    alert('Signup failed'+ error.message || 'Unknown error');
   }
 };
 

@@ -37,10 +37,10 @@ export default function LoginScreen() {
                     },
                 });
                 
-                Alert.alert(`Welcome back ${data.user.firstName} ${data.user.lastName}!`);
+                alert(`Welcome back ${data.user.firstName} ${data.user.lastName}!`);
                 router.push('/profile');
             } else {
-                Alert.alert('Login failed', 'Invalid credentials or missing user data');
+                alert('Login failed'+'Invalid credentials or missing user data');
             }
         } catch (e: any) {
             console.error('Login error:', e.message);
