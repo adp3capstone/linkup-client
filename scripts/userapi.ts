@@ -141,6 +141,7 @@ export async function getAllUsers() {
     }
 }
 // forgot password function
+// Send email to backend to generate reset token
 export async function forgotPassword(email: string) {
   try {
     const response = await fetch(`${apiUrl}/user/auth/forgot-password`, {
@@ -164,18 +165,18 @@ export async function forgotPassword(email: string) {
   }
 }
 
+
 //reset password
+
 export async function resetPassword(token: string, newPassword: string) {
   try {
     const response = await fetch(`${apiUrl}/user/auth/reset-password`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, 
       },
-      body: new URLSearchParams({ 
-        token: token.trim(), 
-        newPassword: newPassword.trim() 
-      }).toString(),
+      body: JSON.stringify({ newPassword: newPassword.trim() }),
     });
 
     if (!response.ok) {
@@ -191,6 +192,8 @@ export async function resetPassword(token: string, newPassword: string) {
     throw error;
   }
 }
+
+
 /// Fetch image by user ID
 
 export async function getImageByUserId(userId: number) {

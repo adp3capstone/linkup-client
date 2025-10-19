@@ -3,8 +3,7 @@ import { Text, View } from "@/components/Themed";
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { forgotPassword, resetPassword } from "../scripts/userapi"; 
-
+import { forgotPassword, resetPassword } from "../scripts/userapi";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -14,9 +13,8 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-   const tokenParam = params.token;
+  const tokenParam = params.token;
   const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
-
 
   useEffect(() => {
     if (token) {
@@ -24,67 +22,55 @@ export default function ForgotPassword() {
     }
   }, [token]);
 
-  
-const handleNext = async () => {
-  if (!email.trim()) {
-    Alert.alert("Error", "Please enter your email address.");
+  const handleNext = async () => {
+    if (!email.trim()) {
+      Alert.alert("Error", "Please enter your email address.");
+      return;
+    }
+
+    console.log("Sending forgot password request for:", email.trim());
+
+    try {
+      const message = await forgotPassword(email.trim());
+      console.log("Forgot password response:", message);
+
+      Alert.alert("Success", message);
+      setStep(2);
+    } catch (error: any) {
+      console.log("Forgot password error:", error);
+      Alert.alert("Error", error.message || "Failed to send reset link.");
+    }
+  };
+
+  const handleReset = async () => {
+  // Password validations
+  if (newPassword !== confirmPassword) {
+    Alert.alert("Error", "Passwords do not match.");
     return;
   }
-  
-  console.log("Sending forgot password request for:", email.trim());
-  
+
+  if (newPassword.length < 6) {
+    Alert.alert("Error", "Password must be at least 6 characters long.");
+    return;
+  }
+
   try {
-    const message = await forgotPassword(email.trim());
-    console.log("Forgot password response:", message);
-    
-    Alert.alert("Success", message);
-    setStep(2);
+    console.log("Resetting password with token:", token);
+
+    await resetPassword(token, newPassword);
+
+    Alert.alert("Success", "Your password has been reset successfully!", [
+      { text: "OK", onPress: () => router.push("/login") },
+    ]);
   } catch (error: any) {
-    console.log("Forgot password error:", error);
-    Alert.alert("Error", error.message || "Failed to send reset link.");
+    console.log("Reset password error:", error);
+    Alert.alert(
+      "Error",
+      error.message || "Failed to reset password. The token may have expired."
+    );
   }
 };
 
-
-
-const handleReset = async () => {
-    // Use the token from URL parameters (already processed above)
-    if (!token) {
-      Alert.alert(
-        "Error",
-        "Reset token is missing. Please use the link from your email."
-      );
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long.");
-      return;
-    }
-
-    try {
-      console.log("Resetting password with token:", token);
-
-      await resetPassword(token, newPassword);
-
-      Alert.alert(
-        "Success",
-        "Your password has been reset successfully!",
-        [{ text: "OK", onPress: () => router.push("/login") }]
-      );
-    } catch (error: any) {
-      console.log("Reset password error:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Failed to reset password. The token may have expired."
-      );
-    }
-  };
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
@@ -97,6 +83,12 @@ const handleReset = async () => {
               <Text style={styles.text1}>Enter email address</Text>
               <Text style={styles.text2}>to reset password</Text>
             </View>
+
+            <Image
+              source={require("../assets/images/forgotpassword .png")}
+              style={styles.forgotpasswordImage}
+              resizeMode="contain"
+            />
 
             <TextInput
               style={styles.input}
@@ -117,6 +109,12 @@ const handleReset = async () => {
         {step === 2 && (
           <View style={styles.stepContainer}>
             <Text style={styles.title}>Reset Password</Text>
+
+            <Image
+              source={require("../assets/images/reset-password.png")}
+              style={styles.resetpasswordImage}
+              resizeMode="contain"
+            />
 
             <TextInput
               style={styles.input1}
@@ -189,6 +187,21 @@ const styles = StyleSheet.create({
     gap: "90%",
     width: "100%",
   },
+
+  forgotpasswordImage: {
+    width: 180,
+    height: 180,
+    alignSelf: "center",
+    marginTop: '60%',
+  },
+
+  resetpasswordImage: {
+    width: 180,
+    height: 180,
+    alignSelf: "center",
+    marginTop: '60%',
+  },
+
   input: {
     position: "absolute",
     display: "flex",
