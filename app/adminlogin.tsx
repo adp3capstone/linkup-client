@@ -1,44 +1,40 @@
 import { Alert, Pressable, StyleSheet, TextInput,  Text, View,Platform } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { login } from '@/scripts/userapi';
+import { loginAdmin } from '@/scripts/admin';
 import { getAllUsers } from '@/scripts/userapi';
 import { getFromStorage, saveToStorage } from '@/scripts/db';
 import { writeUserData } from "@/scripts/fs";
 
-export default function LoginScreen() {
+export default function AdminLoginScreen() {
     const [password, setPassword] = useState('');
     const [userName, setUserName] = useState('');
     const router = useRouter();
 
     const handleLogin = async () => {
         try {
-            const data = await login({
+            const data = await loginAdmin({
                 username: userName,
                 password: password,
             });
 
-            if (data && data.user) {
+            if (data && data.userId) {
                 await saveToStorage('user', {
-                    token: data.token,
-                    userid: data.user.userId,
-                    user: {
-                        userId: data.user.userId,
-                        firstName: data.user.firstName,
-                        lastName: data.user.lastName,
-                        email: data.user.email,
-                        username: data.user.username,
-                        age: data.user.age,
-                        bio: data.user.bio,
-                        institution: data.user.institution,
-                        gender: data.user.gender,
-                        interests: data.user.interests,
-                        relationshipType: data.user.relationshipType,
-                    },
+                    //token: data.token,userid: data.userId,
+                    userId: data.userId,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                    username: data.username,
+                    role: "admin"
                 });
                 
-                Alert.alert(`Welcome back ${data.user.firstName} ${data.user.lastName}!`);
-                router.push('/(tabs)/profile');
+                if(Platform.OS == 'web'){
+                    sessionStorage.setItem("user", JSON.stringify(data));
+                }
+                sessionStorage.setItem('id', data.userId.toString() );
+                Alert.alert(`Welcome back ${data.firstName} ${data.lastName}!`);
+                router.push('/(admintabs)/profile');
             } else {
                 Alert.alert('Login failed', 'Invalid credentials or missing user data');
             }
@@ -49,20 +45,16 @@ export default function LoginScreen() {
     };
 
     const handleGoToSignup = () => {
-        router.push('/signup');
-    };
-
-    const handleGoToAdminLogin = () => {
-        router.push('/adminlogin');
+        router.push('/adminsignup');
     };
 
     const handleForgotPassword = () => {
-        router.push('/forgotpassword');
+        Alert.alert('Forgot Password', 'Please contact support for assistance.');
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Admin Login</Text>
 
             <TextInput
                 style={styles.input}
@@ -90,14 +82,6 @@ export default function LoginScreen() {
             <Pressable onPress={handleForgotPassword}>
                 <Text style={styles.forgotPassword}>Forgot Password</Text>
             </Pressable>
-
-            {
-                Platform.OS === 'web' ? (
-                    <Pressable onPress={handleGoToAdminLogin}>
-                        <Text style={styles.forgotPassword}>Admin Login</Text>
-                    </Pressable>
-                ): null
-            }
         </View>
     );
 }

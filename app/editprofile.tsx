@@ -1,18 +1,20 @@
-import { Alert, Pressable, StyleSheet, TextInput, Switch,  Text, View, Platform } from 'react-native';
-import { useState } from 'react';
+import { Alert, Pressable, StyleSheet, TextInput, Switch,  Text, View } from 'react-native';
+import { useState,useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { signupUser } from '@/scripts/userapi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from "@react-native-picker/picker";
 import { MultiSelect } from "react-native-element-dropdown";
+
 import institutions from "@/data/institutions.json";
 import orientations from "@/data/orientations.json";
 import genders from "@/data/genders.json";
 import interests from "@/data/interests.json";
 import courses from "@/data/courses.json";
 
-export default function SignupScreen() {
-  const [step, setStep] = useState(1); 
+import { updateUserFields } from '@/scripts/userapi';
+
+export default function EditProfileScreen() {
+  const [step, setStep] = useState(1);
 
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -23,7 +25,7 @@ export default function SignupScreen() {
   const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
   const [institution, setInstitution] = useState('');
-  const [gender, setGender] = useState('MALE');
+  const [gender, setGender] = useState('');
   const [course, setCourse] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [smoker, setSmoker] = useState(false);
@@ -32,6 +34,35 @@ export default function SignupScreen() {
   const [orientation, setOrientation] = useState('');
 
   const router = useRouter();
+  const [userData, setUserData] = useState<any>(null);
+    const [userId, setUserId] = useState<number | null>(null);
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await import('@/scripts/db').then(module =>
+          module.getFromStorage('user')
+        );
+  
+        if (!user) {
+          router.replace('/login');
+          return;
+        }
+  
+        setUserData(user);
+  
+        const rawData: any = user;
+        const id = rawData.user.userId;
+  
+        setUserId(id);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        router.replace('/login');
+      }
+    };
+  
+    fetchUserData();
+  }, []);
 
   const handleNext = () => {
     if (step < 2) setStep(step + 1);
@@ -41,76 +72,56 @@ export default function SignupScreen() {
     if (step > 1) setStep(step - 1);
   };
 
-const handleSignUp = async () => {
-  // Collect missing fields
-  const missingFields: string[] = [];
-
-  if (!username.trim()) missingFields.push("Username");
-  if (!firstName.trim()) missingFields.push("First Name");
-  if (!lastName.trim()) missingFields.push("Last Name");
-  if (!email.trim()) missingFields.push("Email");
-  if (!password.trim()) missingFields.push("Password");
-  if (!age.trim()) missingFields.push("Age");
-  if (!bio.trim()) missingFields.push("Bio");
-  if (!height.trim()) missingFields.push("Height");
-  if (!institution) missingFields.push("Institution");
-  if (!gender) missingFields.push("Gender");
-  if (!course) missingFields.push("Course");
-  if (!orientation) missingFields.push("Orientation");
-  if (selectedInterests.length === 0) missingFields.push("Interest(s)");
-
-  // Numeric validation
-  const ageNum = parseInt(age, 10);
-  const heightNum = parseFloat(height);
-  if (!isNaN(ageNum) && ageNum <= 0) missingFields.push("Valid Age");
-  if (!isNaN(heightNum) && heightNum <= 0) missingFields.push("Valid Height");
-
-  // If anything is missing, alert the user
-  if (missingFields.length > 0) {
-    Alert.alert(
-      "Validation Error",
-      `Please fill in the following fields:\n- ${missingFields.join("\n- ")}`
-    );
-    return;
-  }
-
-  // All good, submit
+  const handleUpdate = async () => {
   try {
-    const user = {
+    const rawFields: { [key: string]: any } = {
       username,
       firstName,
       lastName,
       email,
       password,
-      age: ageNum,
+      age: age ? parseInt(age, 10) : null,
       bio,
       institution,
       gender,
       course,
-      interests: selectedInterests,
+      interests: selectedInterests && selectedInterests.length > 0 ? selectedInterests : null,
       orientation,
       smoker,
       drinker,
-      height: heightNum,
+      height: height ? parseFloat(height) : null,
     };
 
-    console.log('Signing up user:', user);
+    // Filter out empty, null, NaN, or undefined
+    const fields = Object.fromEntries(
+      Object.entries(rawFields).filter(([_, value]) => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === "string" && value.trim() === "") return false;
+        if (typeof value === "number" && isNaN(value)) return false;
+        return true;
+      })
+    );
 
-    const result = await signupUser(user);
+    if (!userId) {
+      Alert.alert("Error", "User ID not found");
+      return;
+    }
+
+    console.log("Updating user id:", userId);
+    console.log("With fields:", fields);
+
+    const result = await updateUserFields(userId, fields);
 
     if (result) {
-      Alert.alert('Account created successfully!');
-      router.replace('/login');
+      console.log("Update successful:", result);
+      Alert.alert("Profile updated successfully!");
+      router.back();
     }
   } catch (error: any) {
-    console.error('Signup error:', error);
-    Alert.alert('Signup failed', error.message || 'Unknown error');
+    console.error("Update error:", error);
+    Alert.alert("Update failed", error.message || "Unknown error");
   }
 };
-
-    const handleGoToAdminSignup = () => {
-        router.push('/adminsignup');
-    };
 
 
   return (
@@ -166,7 +177,7 @@ const handleSignUp = async () => {
               onChange={setSelectedInterests}
               selectedStyle={styles.selectedItem}
             />
-            
+
             <Text>Orientation</Text>
             <Picker selectedValue={orientation} onValueChange={setOrientation}>
               {orientations.map((item) => (
@@ -185,18 +196,22 @@ const handleSignUp = async () => {
 
         {/* Navigation Buttons */}
         <View style={styles.navButtons}>
-          {step > 1 && <Pressable style={styles.button} onPress={handleBack}><Text style={styles.buttonText}>Back</Text></Pressable>}
-          {step < 2 && <Pressable style={styles.button} onPress={handleNext}><Text style={styles.buttonText}>Next</Text></Pressable>}
-          {step === 2 && <Pressable style={styles.button} onPress={handleSignUp}><Text style={styles.buttonText}>Sign Up</Text></Pressable>}
+          {step > 1 && (
+            <Pressable style={styles.button} onPress={handleBack}>
+              <Text style={styles.buttonText}>Back</Text>
+            </Pressable>
+          )}
+          {step < 2 && (
+            <Pressable style={styles.button} onPress={handleNext}>
+              <Text style={styles.buttonText}>Next</Text>
+            </Pressable>
+          )}
+          {step === 2 && (
+            <Pressable style={styles.button} onPress={handleUpdate}>
+              <Text style={styles.buttonText}>Update Profile</Text>
+            </Pressable>
+          )}
         </View>
-
-        {
-          Platform.OS === 'web' ? (
-                            <Pressable style={styles.button} onPress={handleGoToAdminSignup}>
-                                <Text style={styles.buttonText}>Admin Sign Up</Text>
-                            </Pressable>
-                        ): null
-        }
       </View>
     </SafeAreaView>
   );

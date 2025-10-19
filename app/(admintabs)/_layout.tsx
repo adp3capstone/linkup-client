@@ -45,29 +45,23 @@ export default function TabLayout() {
   <Tabs.Screen
     name="index"
     options={{
-      title: "Feed",
+      title: "Dashboard",
       tabBarIcon: ({ color }) => <TabBarIcon name="rss" color={color} />,
     }}
   />
-  <Tabs.Screen
-    name="matches"
-    options={{
-      title: "Matches",
-      tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
-    }}
-  />
-  <Tabs.Screen
-    name="chats"
-    options={{
-      title: "Chats",
-      tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
-    }}
-  />
+
   <Tabs.Screen
     name="profile"
     options={{
       title: "Profile",
       tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+    }}
+  />
+  <Tabs.Screen
+    name="tickets"
+    options={{
+      title: "Tickets",
+      tabBarIcon: ({ color }) => <TabBarIcon name="exclamation" color={color} />,
     }}
   />
 </Tabs>

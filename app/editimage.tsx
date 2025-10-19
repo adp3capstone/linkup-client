@@ -32,7 +32,6 @@ export default function EditImageScreen() {
         fetchUserData();
     }, []);
 
-    // Pick image from library
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -51,7 +50,6 @@ export default function EditImageScreen() {
         }
     };
 
-    // Convert image URI to Base64
     const convertImageToBase64 = async (uri: string) => {
         try {
             const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -65,44 +63,40 @@ export default function EditImageScreen() {
         }
     };
 
-    // Example: send Base64 to backend
     const uploadImage = async () => {
-        if (!imageBase64) return Alert.alert("No image", "Please select an image first");
+        if (!imageUri) return Alert.alert("No image", "Please select an image first");
         const user = userData.user;
         const token = userData.token;
-
-        let base64String = imageBase64;
-        base64String = base64String.replace(/^data:image\/\w+;base64,/, '');
         const apiUrl = Constants.expoConfig?.extra?.API_URL;
 
         try {
-            const res = await fetch(`${apiUrl}/image/update`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId:user.userId,
-                    imageUrl: base64String
-                }),
+            const formData = new FormData();
+            formData.append("userId", user.userId.toString());
+            formData.append("imageFile", {
+                uri: imageUri,
+                name: "profile.jpg",
+                type: "image/jpeg",
+            } as any);
+
+            const res = await fetch(`${apiUrl}/image/edit`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: formData,
             });
 
-            if (!res.ok) throw new Error("Upload failed");
+            if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
+
             const data = await res.json();
             Alert.alert("Success", "Image uploaded successfully!");
-            router.push('/profile');
-            await saveToStorage('user', {
-                token: token,
-                user: {
-                    ...user,
-                    image: {
-                        base64String: base64String
-                    }
-                },
-            });
+            router.push('/(tabs)/profile');
         } catch (error) {
-            console.error(error);
+            console.error("Upload error:", error);
             Alert.alert("Error", "Failed to upload image");
         }
     };
+
 
     return (
         <View style={styles.container}>
