@@ -448,6 +448,26 @@ export async function createChatByMatch(matchId: number): Promise<ChatDTO> {
   if (!res.ok) throw new Error("Failed to create chat");
   return res.json();
 }
+export async function getUsersByInterests(interests: string[]): Promise<User[]> {
+    try {
+        const params = new URLSearchParams();
+        interests.forEach(interest => params.append("interests", interest));
+
+        const res = await fetch(`${apiUrl}/user/by-interests?${params.toString()}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        if (!res.ok) {
+            throw new Error(`Failed to fetch users by interests: ${res.status}`);
+        }
+
+        return res.json();
+    } catch (err: any) {
+        console.error(err);
+        throw err;
+    }
+}
 
 
 
